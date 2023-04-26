@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"jwtAuth/dto"
 	"jwtAuth/service"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,7 @@ func (ah AuthHandler) Login(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Bad request")
 		return 
 	}
-	log.Println(loginReq)
+
 	tokens, err := ah.service.Login(loginReq)
 	if err != nil {
 		c.String(http.StatusUnauthorized, err.Error())
@@ -35,4 +34,30 @@ func (ah AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, *tokens)
+}
+
+func (ah AuthHandler) Verify(c *gin.Context) {
+	urlParams := make(map[string]string)
+
+	for k := range c.Request.URL.Query() {
+		urlParams[k] = c.Request.URL.Query().Get(k)
+	}
+
+	if urlParams["token"] != "" {
+		isAuthorized, err := ah.service.Verify(urlParams)
+		if err != nil || !isAuthorized {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "not authorize response",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"Verified": "Authorized",
+		})
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "missing token",
+		})
+	}
 }
