@@ -20,7 +20,7 @@ type Login struct {
 
 func (l Login) GenerateToken() (*string, error) {
 	var claims jwt.MapClaims
-	if l.Accounts.Valid && l.CustomerID.Valid {
+	if l.CustomerID.Valid {
 		claims = l.claimsForUser()
 	} else {
 		claims = l.claimsForAdmin()
