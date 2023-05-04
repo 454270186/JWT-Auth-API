@@ -17,9 +17,9 @@ func router(DB *sql.DB) *gin.Engine {
 	// TODO: 
 	// 1. /auth/login -- DONE
 	// 2. /auth/register
-	// 3. /auth/verify
+	// 3. /auth/verify -- DONE
 	router.POST("/auth/login", ah.Login)
-	router.GET("/auth/verify", ah.Verify)
+	router.GET("/auth/verify", ValidateToken(), ah.Verify)
 
 	return router
 }

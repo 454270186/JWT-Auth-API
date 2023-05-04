@@ -10,7 +10,7 @@ import (
 )
 
 type AuthService interface {
-	Login(dto.LoginRequest) (*string, error)
+	Login(dto.LoginRequest) (*domain.AuthToken, error)
 	Verify(urlParams map[string]string) (bool, error)
 }
 
@@ -26,18 +26,18 @@ func NewAuthService(repository domain.AuthRepo) AuthService {
 	}
 }
 
-func (d DefaultAuthService) Login(req dto.LoginRequest) (*string, error) {
+func (d DefaultAuthService) Login(req dto.LoginRequest) (*domain.AuthToken, error) {
 	login, err := d.repo.FindBy(req.Username, req.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := login.GenerateToken()
+	userToken, err := login.GenerateToken()
 	if err != nil {
 		return nil, err
 	}
 
-	return token, nil
+	return userToken, nil
 }
 
 func (d DefaultAuthService) Verify(urlParams map[string]string) (bool, error) {

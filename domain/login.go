@@ -2,14 +2,14 @@ package domain
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const TOKEN_DURATION = time.Hour
+const TOKEN_DURATION = 5 * time.Second
+const REFRESH_TOKEN_DURATION = 24 * time.Hour
 
 type Login struct {
 	Username string `db:"username"`
@@ -18,22 +18,37 @@ type Login struct {
 	Role string `db:"role"`
 }
 
-func (l Login) GenerateToken() (*string, error) {
-	var claims jwt.MapClaims
-	if l.CustomerID.Valid {
-		claims = l.claimsForUser()
-	} else {
-		claims = l.claimsForAdmin()
-	}
+func (l Login) GenerateToken() (*AuthToken, error) {
+	claims := l.claimsForAccessToken()
+	reClaims := l.claimsForRefresh()
 
-	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedTokenAsString, err := tokens.SignedString([]byte(HMAC_SAMPLE_SECRET))
+	// tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// signedTokenAsString, err := tokens.SignedString([]byte(HMAC_SAMPLE_SECRET))
+	// if err != nil {
+	// 	log.Println("Failed while signing token")
+	// 	return nil, err
+	// }
+	userToken, err := NewAuthToken(claims, reClaims)
 	if err != nil {
-		log.Println("Failed while signing token")
 		return nil, err
 	}
-	
-	return &signedTokenAsString, nil
+
+	return &userToken, nil
+}
+
+func (l Login) claimsForAccessToken() jwt.MapClaims {
+	if l.CustomerID.Valid {
+		return l.claimsForUser()
+	} else {
+		return l.claimsForAdmin()
+	}
+}
+
+func (l Login) claimsForRefresh() jwt.MapClaims {
+	return jwt.MapClaims{
+		"username": l.Username,
+		"exp": time.Now().Add(REFRESH_TOKEN_DURATION).Unix(),
+	}
 }
 
 func (l Login) claimsForUser() jwt.MapClaims {

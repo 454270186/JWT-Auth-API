@@ -27,13 +27,13 @@ func (ah AuthHandler) Login(c *gin.Context) {
 		return 
 	}
 
-	tokens, err := ah.service.Login(loginReq)
+	userTokens, err := ah.service.Login(loginReq)
 	if err != nil {
 		c.String(http.StatusUnauthorized, err.Error())
 		return 
 	}
 
-	c.String(http.StatusOK, *tokens)
+	c.JSON(http.StatusOK, userTokens)
 }
 
 func (ah AuthHandler) Verify(c *gin.Context) {
