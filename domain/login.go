@@ -22,12 +22,6 @@ func (l Login) GenerateToken() (*AuthToken, error) {
 	claims := l.claimsForAccessToken()
 	reClaims := l.claimsForRefresh()
 
-	// tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// signedTokenAsString, err := tokens.SignedString([]byte(HMAC_SAMPLE_SECRET))
-	// if err != nil {
-	// 	log.Println("Failed while signing token")
-	// 	return nil, err
-	// }
 	userToken, err := NewAuthToken(claims, reClaims)
 	if err != nil {
 		return nil, err
@@ -47,6 +41,7 @@ func (l Login) claimsForAccessToken() jwt.MapClaims {
 func (l Login) claimsForRefresh() jwt.MapClaims {
 	return jwt.MapClaims{
 		"username": l.Username,
+		"role": l.Role,
 		"exp": time.Now().Add(REFRESH_TOKEN_DURATION).Unix(),
 	}
 }

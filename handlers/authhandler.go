@@ -53,11 +53,27 @@ func (ah AuthHandler) Verify(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"Verified": "Authorized",
+			"IsVerified": "OK",
 		})
 	} else {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "missing token",
 		})
 	}
+}
+
+func (ah AuthHandler) Refresh(c *gin.Context) {
+	var refreshReq dto.RefreshRequest
+	if err := json.NewDecoder(c.Request.Body).Decode(&refreshReq); err != nil {
+		c.String(http.StatusBadRequest, "Bad request")
+		return 
+	}
+
+	newAccessToken, err := ah.service.Refresh(refreshReq)
+	if err != nil {
+		c.String(http.StatusUnauthorized, err.Error())
+		return 
+	}
+
+	c.JSON(http.StatusOK, newAccessToken)
 }
